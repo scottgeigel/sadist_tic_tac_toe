@@ -65,7 +65,23 @@ static uint32_t the_game;
 /*
   Player turn gets flipped every turn except for the game-ending turn. It is also
   used to determine which player won the game... assuming someone won.
+*/
+//  0   0     0   4     0   0     0   0
+//0000 0000 0000 0100 0000 0000 0000 0000
+void display_prompt() {
+  printf("It is player ");
+  if (the_game & 0x00040000) {
+    putchar('O');
+  } else {
+    putchar('X');
+  }
+  printf("'s turn\n");
+}
 
+void next_turn() {
+  the_game ^= 0x00040000;
+}
+/*
   The actual game board will look like this:
     bit 17 and 16 --> xx xx xx <--bit 13 and 12
     bit 11 and 10 --> xx xx xx <--bit 7 and 6
@@ -112,6 +128,13 @@ int main () {
   printf("\t<0x%8.8X> Player Swap is now <0x%2.2X>\n", the_game, GET_GAME_PLAYERSWAP());
 
   printf("\n\n");
+
+  printf("Testing Player Turn\n");
+  printf("\t<0x%8.8X>", the_game); display_prompt(); printf("\n");
+  next_turn();
+  printf("\t<0x%8.8X>", the_game); display_prompt(); printf("\n");
+  next_turn();
+  printf("\t<0x%8.8X>", the_game); display_prompt(); printf("\n");
 
   return EXIT_SUCCESS;
 }
