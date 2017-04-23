@@ -45,6 +45,7 @@ static uint32_t the_game;
 /*
   Unused is for padding
 */
+#define __UNUSED_BITS__ 0x00E00000
 
 /*
   Player swap is used in the game evaluation function. It is used to compare
@@ -94,9 +95,23 @@ static uint32_t the_game;
 int main () {
   the_game = 0;
   printf("Testing functionality of get buf and set buf\n");
-  printf("<0x%8.8X> Char Buf is now <0x%2.2X>\n", the_game, GET_GAME_CHARBUF());
-  printf("Type a character > ");
+  printf("\t<0x%8.8X> Char Buf is now <0x%2.2X>\n", the_game, GET_GAME_CHARBUF());
+  printf("\tType a character > ");
   SET_GAME_CHARBUF(getchar());
-  printf("<0x%8.8X> Char Buf is now <0x%2.2X>\n", the_game, GET_GAME_CHARBUF());
+  printf("\t<0x%8.8X> Char Buf is now <0x%2.2X>\n", the_game, GET_GAME_CHARBUF());
+
+  printf("\n\n");
+
+  printf("Testing functionality of player swap\n");
+  printf("\t<0x%8.8X> Player Swap is now <0x%2.2X>\n", the_game, GET_GAME_PLAYERSWAP());
+  printf("\tSetting player to X\n");
+  SET_GAME_PLAYERSWAP(MASK_SQUARE_X);
+  printf("\t<0x%8.8X> Player Swap is now <0x%2.2X>\n\n", the_game, GET_GAME_PLAYERSWAP());
+  printf("\tSetting player to O\n");
+  SET_GAME_PLAYERSWAP(MASK_SQUARE_O);
+  printf("\t<0x%8.8X> Player Swap is now <0x%2.2X>\n", the_game, GET_GAME_PLAYERSWAP());
+
+  printf("\n\n");
+
   return EXIT_SUCCESS;
 }
