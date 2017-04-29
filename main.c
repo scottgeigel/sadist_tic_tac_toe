@@ -10,19 +10,10 @@
     01 => X
     10 => O
     11 => Invalid
-*/
-#define MASK_SQUARE_X 0x01
-#define MASK_SQUARE_O 0x02
-#define MASK_SQUARE_EMPTY 0x00
-#define MASK_SQUARE_MASK 0x03
 
-/*
   We need to keep track of the player's turn. This can be done entirely with
   1 bit.
 */
-#define MASK_TURN_X 0x00
-#define MASK_TURN_O 0x01
-
 union {
   struct {
     /*
@@ -51,8 +42,6 @@ union {
   uint32_t val;
 } the_game;
 
-//  0   0     0   4     0   0     0   0
-//0000 0000 0000 0100 0000 0000 0000 0000
 void display_prompt() {
   printf("It is player ");
   if (the_game.player_turn) {
@@ -67,12 +56,6 @@ void next_turn() {
   the_game.player_turn ^= 1;
 }
 
-
-//  0   0       0   3       F   F       F   F
-//0000 0000   0000 0011   1111 1111   1111 1111
-#define MASK_BOARD_MASK 0x0003FF
-#define MASK_BOARD() (the_game & MASK_BOARD_MASK)
-
 /*
   The board is logically laid as this grid
     8 7 6
@@ -80,20 +63,10 @@ void next_turn() {
     2 1 0
 */
 void game_eval() {
-  //xx 11 00 00
-  //   11 00 00
-  //   11 00 00
-  #define VERTICAL_MASK 0x10410
-  // #define VERTICAL_MASK 0x30C30
   //xx 01 00 00
   //   01 00 00
   //   01 00 00
-  #define VERTICAL_X_WIN 0x10410
-  //xx 10 00 00
-  //   10 00 00
-  //   10 00 00
-  #define VERTICAL_O_WIN 0x20820
-
+  #define VERTICAL_MASK 0x10410
   //xx 01 01 01
   //   00 00 00
   //   00 00 00
@@ -102,26 +75,12 @@ void game_eval() {
   //   00 01 00
   //   00 00 01
   #define DIAG_TL2BR 0x10101
-
   //xx 00 00 01
   //   00 01 00
   //   01 00 00
   #define DIAG_BL2TR 0x01110
 
   #define TRANSPOSE_MASK(mask, turn) ((mask) << turn)
-  //
-  // if ((the_game.board & VERTICAL_MASK) == (VERTICAL_X_WIN << (the_game.player_turn))) {
-  //   the_game.win_flag = 1;
-  // }
-  // if (the_game.player_turn == 0) {
-  //   if ((the_game.board & VERTICAL_MASK) == VERTICAL_X_WIN) {
-  //     the_game.win_flag = 1;
-  //   }
-  // } else {
-  //   if ((the_game.board & VERTICAL_MASK) == VERTICAL_O_WIN) {
-  //     the_game.win_flag = 1;
-  //   }
-  // }
   ////////vertical pass////////
   //check left most
   if ((the_game.board & TRANSPOSE_MASK(VERTICAL_MASK, the_game.player_turn)) == TRANSPOSE_MASK(VERTICAL_MASK, the_game.player_turn)) {
@@ -173,7 +132,7 @@ void game_eval() {
 
 void game_turn() {
 try_again:
-  the_game.char_buffer = getchar();
+  the_game.char_buffer = (uint32_t) getchar();
   switch (the_game.char_buffer) {
     case '0':
     case '1':
@@ -197,36 +156,21 @@ try_again:
     case '\r':
       /* skip white space character */
       goto try_again;
-      break;
     case 0xFF:
       printf("\nUser terminated game\n");
       exit(EXIT_FAILURE);
     default:
       printf("Invalid character <%c>\n", the_game.char_buffer);
       goto try_again;
-      break;
   }
 }
 
-//TODO: cleanup comments
 void display_board() {
-  //xx11 0000 0000 0000 0000 => 8
-  //xx00 1100 0000 0000 0000 => 7
-  //xx00 0011 0000 0000 0000 => 6
-  //
-  //xx00 0000 1100 0000 0000 => 5
-  //xx00 0000 0011 0000 0000 => 4
-  //xx00 0000 0000 1100 0000 => 3
-  //
-  //xx00 0000 0000 0011 0000 => 2
-  //xx00 0000 0000 0000 1100 => 1
-  //xx00 0000 0000 0000 0011 => 0
   /*
     top left square
     0x3   0     0    0   0
     xx11 0000 0000 0000 0000
   */
-  printf("DEBUG %#X => %#X\n", the_game, the_game.board);
   if ((the_game.board & 0x30000) == 0x20000) { //player O
     putchar('O');
   } else if ((the_game.board & 0x30000) == 0x10000) { //player x
@@ -357,7 +301,7 @@ loop:
   if (the_game.win_flag) {
     printf("Player %c won!!!\n", (the_game.player_turn)? 'O' : 'X');
     goto end_of_game;
-  } else if (the_game.turn_count >= 9) {
+  } else if (the_game.turn_count >= 8) {
     printf("DRAW!!!");
     goto end_of_game;
   } else {
@@ -367,33 +311,5 @@ loop:
   }
 end_of_game:
   printf("\n\nGAME OVER\n\n");
-#ifndef TEST_MODE
-#else
-  printf("Testing functionality of get buf and set buf\n");
-  printf("\t<0x%8.8X> Char Buf is now <0x%2.2X>\n", the_game, GET_GAME_CHARBUF());
-  printf("\tType a character > ");
-  SET_GAME_CHARBUF(getchar());
-  printf("\t<0x%8.8X> Char Buf is now <0x%2.2X>\n", the_game, GET_GAME_CHARBUF());
-
-  printf("\n\n");
-
-  printf("Testing functionality of player swap\n");
-  printf("\t<0x%8.8X> Player Swap is now <0x%2.2X>\n", the_game, GET_GAME_PLAYERSWAP());
-  printf("\tSetting player to X\n");
-  SET_GAME_PLAYERSWAP(MASK_SQUARE_X);
-  printf("\t<0x%8.8X> Player Swap is now <0x%2.2X>\n\n", the_game, GET_GAME_PLAYERSWAP());
-  printf("\tSetting player to O\n");
-  SET_GAME_PLAYERSWAP(MASK_SQUARE_O);
-  printf("\t<0x%8.8X> Player Swap is now <0x%2.2X>\n", the_game, GET_GAME_PLAYERSWAP());
-
-  printf("\n\n");
-
-  printf("Testing Player Turn\n");
-  printf("\t<0x%8.8X>", the_game); display_prompt(); printf("\n");
-  next_turn();
-  printf("\t<0x%8.8X>", the_game); display_prompt(); printf("\n");
-  next_turn();
-  printf("\t<0x%8.8X>", the_game); display_prompt(); printf("\n");
-#endif
   return EXIT_SUCCESS;
 }
