@@ -2,6 +2,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+static void display_prompt(void);
+static void display_board(void);
+static void game_eval(void);
+static void game_turn(void);
+
 /*
   Tic Tac Toe has 9 square. The squares can be either X, O, or Not Set.
   If we represent each square with 2 bits, we can fit the entire board into
@@ -14,7 +19,7 @@
   We need to keep track of the player's turn. This can be done entirely with
   1 bit.
 */
-union {
+static union {
   struct {
     /*
       The character buffer is used to read from the console.
@@ -42,18 +47,141 @@ union {
   uint32_t val;
 } the_game;
 
-void display_prompt() {
-  printf("It is player ");
-  if (the_game.player_turn) {
-    putchar('O');
-  } else {
-    putchar('X');
+static void display_board(void) {
+  /*
+    top left square
+    0x3   0     0    0   0
+    xx11 0000 0000 0000 0000
+  */
+  if ((the_game.board & 0x30000) == 0x20000) { //player O
+    (void)putchar('O');
+  } else if ((the_game.board & 0x30000) == 0x10000) { //player x
+    (void)putchar('X');
+  } else { //empty
+    (void)putchar('8');
   }
-  printf("'s turn\n");
+
+  /*
+    top middle square
+    0x0    C    0    0    0
+    xx00 1100 0000 0000 0000
+  */
+  if ((the_game.board & 0x0C000) == 0x08000) { //player O
+    (void)putchar('O');
+  } else if ((the_game.board & 0x0C000) == 0x04000) { //player x
+    (void)putchar('X');
+  } else { //empty
+    (void)putchar('7');
+  }
+
+  /*
+    top right square
+  */
+  //0    3    0    0    0
+  //xx00 0011 0000 0000 0000
+  if ((the_game.board & 0x03000)== 0x02000) { //player O
+    (void)putchar('O');
+  } else if ((the_game.board & 0x03000) == 0x01000) { //player x
+    (void)putchar('X');
+  } else { //empty
+    (void)putchar('6');
+  }
+
+  /*****
+    Next line
+  *****/
+  (void)putchar('\n');
+
+  /*
+    Middle Left square
+  */
+  //0     0    C    0    0
+  //xx00 0000 1100 0000 0000
+  if ((the_game.board & 0x00C00) == 0x00800) { //player O
+    (void)putchar('O');
+  } else if ((the_game.board & 0x00C00) == 0x00400) { //player x
+    (void)putchar('X');
+  } else { //empty
+    (void)putchar('5');
+  }
+
+  /*
+    Middle middle square
+  */
+  //0    0     3    0    0
+  //xx00 0000 0011 0000 0000
+  if ((the_game.board & 0x00300)== 0x00200) { //player O
+    (void)putchar('O');
+  } else if ((the_game.board & 0x00300) == 0x00100) { //player x
+    (void)putchar('X');
+  } else { //empty
+    (void)putchar('4');
+  }
+
+  /*
+    Middle right square
+    xx00 0000 0000 1100 0000
+  */
+  if ((the_game.board & 0x000C0) == 0x00080) { //player O
+    (void)putchar('O');
+  } else if ((the_game.board & 0x000C0) == 0x00040) { //player x
+    (void)putchar('X');
+  } else { //empty
+    (void)putchar('3');
+  }
+
+  /*****
+    Next line
+  *****/
+  (void)putchar('\n');
+
+  /*
+    Bottom Left square
+    xx00 0000 0000 0011 0000
+  */
+  if ((the_game.board & 0x00030) == 0x00020) { //player O
+    (void)putchar('O');
+  } else if ((the_game.board & 0x00030) == 0x00010) { //player x
+    (void)putchar('X');
+  } else { //empty
+    (void)putchar('2');
+  }
+
+  /*
+    Bottom Middle square
+    xx00 0000 0000 0000 1100
+  */
+  if ((the_game.board & 0x0000C) == 0x00008) { //player O
+    (void)putchar('O');
+  } else if ((the_game.board & 0x0000C) == 0x00004) { //player x
+    (void)putchar('X');
+  } else { //empty
+    (void)putchar('1');
+  }
+
+  /*
+    bottom right square
+    xx00 0000 0000 0000 0011
+  */
+  if ((the_game.board & 0x00003) == 0x00002) { //player O
+    (void)putchar('O');
+  } else if ((the_game.board & 0x00003) == 0x00001) { //player x
+    (void)putchar('X');
+  } else { //empty
+    (void)putchar('0');
+  }
+  (void)putchar('\n');
 }
 
-void next_turn() {
-  the_game.player_turn ^= 1;
+static void display_prompt() {
+  printf("It is player ");
+  if (the_game.player_turn == 1) {
+    (void)putchar('O');
+  } else {
+    (void)putchar('X');
+  }
+  printf("'s turn\n");
+
 }
 
 /*
@@ -62,23 +190,23 @@ void next_turn() {
     5 4 3
     2 1 0
 */
-void game_eval() {
+static void game_eval() {
   //xx 01 00 00
   //   01 00 00
   //   01 00 00
-  #define VERTICAL_MASK 0x10410
+  #define VERTICAL_MASK ((uint32_t)0x10410)
   //xx 01 01 01
   //   00 00 00
   //   00 00 00
-  #define HORIZONTAL_MASK 0x15000
+  #define HORIZONTAL_MASK ((uint32_t)0x15000)
   //xx 01 00 00
   //   00 01 00
   //   00 00 01
-  #define DIAG_TL2BR 0x10101
+  #define DIAG_TL2BR ((uint32_t)0x10101)
   //xx 00 00 01
   //   00 01 00
   //   01 00 00
-  #define DIAG_BL2TR 0x01110
+  #define DIAG_BL2TR ((uint32_t)0x01110)
 
   #define TRANSPOSE_MASK(mask, turn) ((mask) << turn)
   ////////vertical pass////////
@@ -88,12 +216,12 @@ void game_eval() {
     return;
   }
   //check middle
-  if ((the_game.board & TRANSPOSE_MASK(VERTICAL_MASK >> 2, the_game.player_turn)) == TRANSPOSE_MASK(VERTICAL_MASK >> 2, the_game.player_turn)) {
+  if ((the_game.board & TRANSPOSE_MASK(VERTICAL_MASK >> 2u, the_game.player_turn)) == TRANSPOSE_MASK(VERTICAL_MASK >> 2u, the_game.player_turn)) {
     the_game.win_flag = 1;
     return;
   }
   //check right
-  if ((the_game.board & TRANSPOSE_MASK(VERTICAL_MASK >> 4, the_game.player_turn)) == TRANSPOSE_MASK(VERTICAL_MASK >> 4, the_game.player_turn)) {
+  if ((the_game.board & TRANSPOSE_MASK(VERTICAL_MASK >> 4u, the_game.player_turn)) == TRANSPOSE_MASK(VERTICAL_MASK >> 4u, the_game.player_turn)) {
     the_game.win_flag = 1;
     return;
   }
@@ -130,7 +258,7 @@ void game_eval() {
   }
 }
 
-void game_turn() {
+static void game_turn() {
 try_again:
   the_game.char_buffer = (uint32_t) getchar();
   switch (the_game.char_buffer) {
@@ -143,12 +271,11 @@ try_again:
     case '6':
     case '7':
     case '8':
-      the_game.char_buffer -= '0';
-      printf("trying %d %#X %#X\n", the_game.char_buffer, 0x03 << (the_game.char_buffer*2), ((the_game.player_turn)? 0x02: 0x01) << (the_game.char_buffer*2));
+      the_game.char_buffer -= (uint32_t)'0';
       if ((the_game.board & (0x03 << (the_game.char_buffer*2))) == 0) {
-        the_game.board |= ((the_game.player_turn)? 0x02: 0x01) << (the_game.char_buffer*2);
+        the_game.board |= ((the_game.player_turn == 1)? 0x02u: 0x01u) << (the_game.char_buffer*2);
       } else {
-        printf("The square <%d> has alrady been claimed\n", the_game.char_buffer);
+        printf("The square <%d> has alrady been claimed\n", (int)the_game.char_buffer);
         goto try_again;
       }
       break;
@@ -160,135 +287,9 @@ try_again:
       printf("\nUser terminated game\n");
       exit(EXIT_FAILURE);
     default:
-      printf("Invalid character <%c>\n", the_game.char_buffer);
+      printf("Invalid character <%c>\n", (char) the_game.char_buffer);
       goto try_again;
   }
-}
-
-void display_board() {
-  /*
-    top left square
-    0x3   0     0    0   0
-    xx11 0000 0000 0000 0000
-  */
-  if ((the_game.board & 0x30000) == 0x20000) { //player O
-    putchar('O');
-  } else if ((the_game.board & 0x30000) == 0x10000) { //player x
-    putchar('X');
-  } else { //empty
-    putchar('8');
-  }
-
-  /*
-    top middle square
-    0x0    C    0    0    0
-    xx00 1100 0000 0000 0000
-  */
-  if ((the_game.board & 0x0C000) == 0x08000) { //player O
-    putchar('O');
-  } else if ((the_game.board & 0x0C000) == 0x04000) { //player x
-    putchar('X');
-  } else { //empty
-    putchar('7');
-  }
-
-  /*
-    top right square
-  */
-  //0    3    0    0    0
-  //xx00 0011 0000 0000 0000
-  if ((the_game.board & 0x03000)== 0x02000) { //player O
-    putchar('O');
-  } else if ((the_game.board & 0x03000) == 0x01000) { //player x
-    putchar('X');
-  } else { //empty
-    putchar('6');
-  }
-
-  /*****
-    Next line
-  *****/
-  putchar('\n');
-
-  /*
-    Middle Left square
-  */
-  //0     0    C    0    0
-  //xx00 0000 1100 0000 0000
-  if ((the_game.board & 0x00C00) == 0x00800) { //player O
-    putchar('O');
-  } else if ((the_game.board & 0x00C00) == 0x00400) { //player x
-    putchar('X');
-  } else { //empty
-    putchar('5');
-  }
-
-  /*
-    Middle middle square
-  */
-  //0    0     3    0    0
-  //xx00 0000 0011 0000 0000
-  if ((the_game.board & 0x00300)== 0x00200) { //player O
-    putchar('O');
-  } else if ((the_game.board & 0x00300) == 0x00100) { //player x
-    putchar('X');
-  } else { //empty
-    putchar('4');
-  }
-
-  /*
-    Middle right square
-    xx00 0000 0000 1100 0000
-  */
-  if ((the_game.board & 0x000C0) == 0x00080) { //player O
-    putchar('O');
-  } else if ((the_game.board & 0x000C0) == 0x00040) { //player x
-    putchar('X');
-  } else { //empty
-    putchar('3');
-  }
-
-  /*****
-    Next line
-  *****/
-  putchar('\n');
-
-  /*
-    Bottom Left square
-    xx00 0000 0000 0011 0000
-  */
-  if ((the_game.board & 0x00030) == 0x00020) { //player O
-    putchar('O');
-  } else if ((the_game.board & 0x00030) == 0x00010) { //player x
-    putchar('X');
-  } else { //empty
-    putchar('2');
-  }
-
-  /*
-    Bottom Middle square
-    xx00 0000 0000 0000 1100
-  */
-  if ((the_game.board & 0x0000C) == 0x00008) { //player O
-    putchar('O');
-  } else if ((the_game.board & 0x0000C) == 0x00004) { //player x
-    putchar('X');
-  } else { //empty
-    putchar('1');
-  }
-
-  /*
-    bottom right square
-    xx00 0000 0000 0000 0011
-  */
-  if ((the_game.board & 0x00003) == 0x00002) { //player O
-    putchar('O');
-  } else if ((the_game.board & 0x00003) == 0x00001) { //player x
-    putchar('X');
-  } else { //empty
-    putchar('0');
-  }
-  putchar('\n');
 }
 
 int main () {
@@ -298,8 +299,8 @@ loop:
   display_prompt();
   game_turn();
   game_eval();
-  if (the_game.win_flag) {
-    printf("Player %c won!!!\n", (the_game.player_turn)? 'O' : 'X');
+  if (the_game.win_flag == 1) {
+    printf("Player %c won!!!\n", (the_game.player_turn == 1)? 'O' : 'X');
     goto end_of_game;
   } else if (the_game.turn_count >= 8) {
     printf("DRAW!!!");
@@ -310,6 +311,7 @@ loop:
     goto loop;
   }
 end_of_game:
+  display_board();
   printf("\n\nGAME OVER\n\n");
   return EXIT_SUCCESS;
 }
