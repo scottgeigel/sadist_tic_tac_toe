@@ -80,60 +80,92 @@ void next_turn() {
     2 1 0
 */
 void game_eval() {
-  //these masks are defined for player x
-  #define VERTICAL_MASK 0x10410
+  //xx 11 00 00
+  //   11 00 00
+  //   11 00 00
+  #define VERTICAL_MASK 0x30C30
+  //xx 01 00 00
+  //   01 00 00
+  //   01 00 00
+  #define VERTICAL_X_WIN 0x10410
+  //xx 10 00 00
+  //   10 00 00
+  //   10 00 00
+  #define VERTICAL_O_WIN 0x20820
+
+  //xx 01 11 11
+  //   00 00 00
+  //   00 00 00
   #define HORIZONTAL_MASK 0x1F000
+  //xx 01 00 00
+  //   00 01 00
+  //   00 00 01
   #define DIAG_TL2BR 0x10101
+
+  //xx 00 00 01
+  //   00 01 00
+  //   01 00 00
   #define DIAG_BL2TR 0x01110
-  //do a transpose, shift nothing if player x, shift 1 left if player o
-  #define TRANSPOSE_MASK(mask, player_turn) ((mask) << (player_turn == 1))
-  ////////vertical pass////////
-  //check left most
-  if ((the_game.board & TRANSPOSE_MASK(VERTICAL_MASK, the_game.player_turn)) == TRANSPOSE_MASK(VERTICAL_MASK, the_game.player_turn)) {
+
+  if ((the_game.board & VERTICAL_MASK) == (VERTICAL_X_WIN << (the_game.player_turn))) {
     the_game.win_flag = 1;
-    return;
   }
-  //check middle
-  if ((the_game.board & TRANSPOSE_MASK(VERTICAL_MASK >> 2, the_game.player_turn)) == TRANSPOSE_MASK(VERTICAL_MASK >> 2, the_game.player_turn)) {
-    the_game.win_flag = 1;
-    return;
-  }
-  //check right
-  if ((the_game.board & TRANSPOSE_MASK(VERTICAL_MASK >> 4, the_game.player_turn)) == TRANSPOSE_MASK(VERTICAL_MASK >> 4, the_game.player_turn)) {
-    the_game.win_flag = 1;
-    return;
-  }
-  if ((the_game.board & TRANSPOSE_MASK(VERTICAL_MASK, the_game.player_turn)) == TRANSPOSE_MASK(VERTICAL_MASK, the_game.player_turn)) {
-    the_game.win_flag = 1;
-    return;
-  }
-  ////////horizontal pass////////
-  //check top
-  if ((the_game.board & TRANSPOSE_MASK(HORIZONTAL_MASK, the_game.player_turn)) == TRANSPOSE_MASK(HORIZONTAL_MASK, the_game.player_turn)) {
-    the_game.win_flag = 1;
-    return;
-  }
-  //check middle
-  if ((the_game.board & TRANSPOSE_MASK(HORIZONTAL_MASK >> 6, the_game.player_turn)) == TRANSPOSE_MASK(HORIZONTAL_MASK >> 6, the_game.player_turn)) {
-    the_game.win_flag = 1;
-    return;
-  }
-  //check bottom
-  if ((the_game.board & TRANSPOSE_MASK(HORIZONTAL_MASK >> 12, the_game.player_turn)) == TRANSPOSE_MASK(HORIZONTAL_MASK >> 12, the_game.player_turn)) {
-    the_game.win_flag = 1;
-    return;
-  }
-  ////////diagonal pass////////
-  //top left to bottom right
-  if ((the_game.board & TRANSPOSE_MASK(DIAG_TL2BR, the_game.player_turn)) == TRANSPOSE_MASK(DIAG_TL2BR, the_game.player_turn)) {
-    the_game.win_flag = 1;
-    return;
-  }
-  //bottom left to top right
-  if ((the_game.board & TRANSPOSE_MASK(DIAG_BL2TR, the_game.player_turn)) == TRANSPOSE_MASK(DIAG_BL2TR, the_game.player_turn)) {
-    the_game.win_flag = 1;
-    return;
-  }
+  // if (the_game.player_turn == 0) {
+  //   if ((the_game.board & VERTICAL_MASK) == VERTICAL_X_WIN) {
+  //     the_game.win_flag = 1;
+  //   }
+  // } else {
+  //   if ((the_game.board & VERTICAL_MASK) == VERTICAL_O_WIN) {
+  //     the_game.win_flag = 1;
+  //   }
+  // }
+  // ////////vertical pass////////
+  // //check left most
+  // if ((the_game.board & TRANSPOSE_MASK(VERTICAL_MASK, the_game.player_turn)) == TRANSPOSE_MASK(VERTICAL_MASK, the_game.player_turn)) {
+  //   the_game.win_flag = 1;
+  //   return;
+  // }
+  // //check middle
+  // if ((the_game.board & TRANSPOSE_MASK(VERTICAL_MASK >> 2, the_game.player_turn)) == TRANSPOSE_MASK(VERTICAL_MASK >> 2, the_game.player_turn)) {
+  //   the_game.win_flag = 1;
+  //   return;
+  // }
+  // //check right
+  // if ((the_game.board & TRANSPOSE_MASK(VERTICAL_MASK >> 4, the_game.player_turn)) == TRANSPOSE_MASK(VERTICAL_MASK >> 4, the_game.player_turn)) {
+  //   the_game.win_flag = 1;
+  //   return;
+  // }
+  // if ((the_game.board & TRANSPOSE_MASK(VERTICAL_MASK, the_game.player_turn)) == TRANSPOSE_MASK(VERTICAL_MASK, the_game.player_turn)) {
+  //   the_game.win_flag = 1;
+  //   return;
+  // }
+  // ////////horizontal pass////////
+  // //check top
+  // if ((the_game.board & TRANSPOSE_MASK(HORIZONTAL_MASK, the_game.player_turn)) == TRANSPOSE_MASK(HORIZONTAL_MASK, the_game.player_turn)) {
+  //   the_game.win_flag = 1;
+  //   return;
+  // }
+  // //check middle
+  // if ((the_game.board & TRANSPOSE_MASK(HORIZONTAL_MASK >> 6, the_game.player_turn)) == TRANSPOSE_MASK(HORIZONTAL_MASK >> 6, the_game.player_turn)) {
+  //   the_game.win_flag = 1;
+  //   return;
+  // }
+  // //check bottom
+  // if ((the_game.board & TRANSPOSE_MASK(HORIZONTAL_MASK >> 12, the_game.player_turn)) == TRANSPOSE_MASK(HORIZONTAL_MASK >> 12, the_game.player_turn)) {
+  //   the_game.win_flag = 1;
+  //   return;
+  // }
+  // ////////diagonal pass////////
+  // //top left to bottom right
+  // if ((the_game.board & TRANSPOSE_MASK(DIAG_TL2BR, the_game.player_turn)) == TRANSPOSE_MASK(DIAG_TL2BR, the_game.player_turn)) {
+  //   the_game.win_flag = 1;
+  //   return;
+  // }
+  // //bottom left to top right
+  // if ((the_game.board & TRANSPOSE_MASK(DIAG_BL2TR, the_game.player_turn)) == TRANSPOSE_MASK(DIAG_BL2TR, the_game.player_turn)) {
+  //   the_game.win_flag = 1;
+  //   return;
+  // }
 }
 
 void game_turn() {
@@ -188,9 +220,10 @@ void display_board() {
   //xx00 0000 0000 0000 0011 => 0
   /*
     top left square
-    //xx11 0000 0000 0000 0000
+    0x3   0     0    0   0
+    xx11 0000 0000 0000 0000
   */
-  printf("DEBUG %d %d\n", (the_game.board & 0x30000) == 0x20000, ((the_game.board & 0x30000)) == 0x20000);
+  printf("DEBUG %#X => %#X\n", the_game, the_game.board);
   if ((the_game.board & 0x30000) == 0x20000) { //player O
     putchar('O');
   } else if ((the_game.board & 0x30000) == 0x10000) { //player x
@@ -201,9 +234,9 @@ void display_board() {
 
   /*
     top middle square
+    0x0    C    0    0    0
+    xx00 1100 0000 0000 0000
   */
-  //0    C    0    0    0
-  //xx00 1100 0000 0000 0000
   if ((the_game.board & 0x0C000) == 0x08000) { //player O
     putchar('O');
   } else if ((the_game.board & 0x0C000) == 0x04000) { //player x
@@ -258,12 +291,11 @@ void display_board() {
 
   /*
     Middle right square
+    xx00 0000 0000 1100 0000
   */
-  //0     0    0    0    0
-  //xx00 0000 0000 0000 1100
-  if ((the_game.board & 0x00C00) == 0x00800) { //player O
+  if ((the_game.board & 0x000C0) == 0x00080) { //player O
     putchar('O');
-  } else if ((the_game.board & 0x00C00) == 0x00400) { //player x
+  } else if ((the_game.board & 0x000C0) == 0x00040) { //player x
     putchar('X');
   } else { //empty
     putchar('3');
@@ -278,9 +310,9 @@ void display_board() {
     Bottom Left square
     xx00 0000 0000 0011 0000
   */
-  if ((the_game.board & 0x00003) == 0x00002) { //player O
+  if ((the_game.board & 0x00030) == 0x00020) { //player O
     putchar('O');
-  } else if ((the_game.board & 0x00003) == 0x00001) { //player x
+  } else if ((the_game.board & 0x00030) == 0x00010) { //player x
     putchar('X');
   } else { //empty
     putchar('2');
