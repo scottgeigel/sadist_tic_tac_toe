@@ -1,3 +1,15 @@
+/*
+  I've made this game as sort of a joke.
+  The rules are as follows:
+    make a fully functional 2-player tic tac toe game with a user friendly interface
+    use only a single 32 bit number
+    no other variables
+    no return values
+    no parameters
+    user made functions are ok, but may not call subsequent user made functions
+      i.e. stack level never goes further than 1 past main
+*/
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
