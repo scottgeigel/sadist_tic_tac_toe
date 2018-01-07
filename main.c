@@ -315,7 +315,7 @@ loop:
     printf("Player %c won!!!\n", (the_game.player_turn == 1)? 'O' : 'X');
     goto end_of_game;
   } else if (the_game.turn_count >= 8) {
-    printf("DRAW!!!");
+    printf("DRAW!!!\n");
     goto end_of_game;
   } else {
     the_game.turn_count++;
